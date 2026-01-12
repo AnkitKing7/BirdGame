@@ -2,222 +2,274 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AstraAi: Flappy 3D Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Multi-Neon Flappy 2027 - Ankit Kumar Ex</title>
     <style>
-        :root { --white: #ffffff; --border: #333333; --neon-blue: #00d2ff; }
-        body { margin: 0; overflow: hidden; font-family: 'Arial Rounded MT Bold', sans-serif; background: #f0f0f0; }
-        
-        #game-box { position: relative; width: 100vw; height: 100vh; max-width: 450px; margin: auto; background: #fff; border: 10px solid var(--border); box-sizing: border-box; }
-        
-        /* 3D UI Design */
-        .ui-btn { 
-            background: var(--white); border: 5px solid var(--border); border-radius: 15px; 
-            padding: 12px; font-weight: 900; cursor: pointer; box-shadow: 0 6px 0 var(--border);
-            transition: 0.1s; font-size: 16px;
+        :root {
+            --neon: #00f3ff;
+            --bg-color: #020202;
         }
-        .ui-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--border); }
-        .play-btn { background: #5ced73; font-size: 30px; margin-top: 50px; padding: 20px 50px; }
-
-        .top-bar { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; z-index: 10; }
-        .coin-tag { background: #ffd700; border: 3px solid #333; padding: 5px 15px; border-radius: 20px; font-size: 20px; box-shadow: 0 4px 0 #333; }
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: var(--bg-color); 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            font-family: 'Orbitron', 'Segoe UI', sans-serif; 
+        }
+        #game-container { position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,1); border: 2px solid var(--neon); }
+        canvas { background: #050505; display: block; }
         
-        .bottom-nav { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-evenly; z-index: 10; }
+        /* Glassmorphism UI */
+        #ui-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+        .main-title {
+            color: var(--neon);
+            font-size: 38px;
+            text-shadow: 0 0 20px var(--neon);
+            margin-bottom: 20px;
+            font-weight: 900;
+            letter-spacing: 4px;
+            text-align: center;
+        }
+        .btn-group { display: flex; flex-direction: column; gap: 10px; width: 220px; }
+        .neon-btn {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: white;
+            border: 2px solid var(--neon);
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.3s;
+            box-shadow: inset 0 0 5px var(--neon), 0 0 5px var(--neon);
+        }
+        .neon-btn:hover {
+            background: var(--neon);
+            color: black;
+            box-shadow: 0 0 25px var(--neon);
+        }
 
-        /* Modified Shop */
-        .overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.98); z-index: 100; display: none; padding: 30px 10px; text-align: center; }
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-height: 60vh; overflow-y: auto; padding: 10px; }
-        
-        .card { border: 4px solid var(--border); border-radius: 12px; padding: 10px; background: #f9f9f9; box-shadow: 0 5px 0 var(--border); position: relative; cursor: pointer; }
-        .card.active { background: #00d2ff; }
-        .card img { width: 45px; height: 45px; filter: drop-shadow(2px 2px 0px #000); }
-
-        .redeem-section { background: #fff; border: 4px dashed #333; padding: 20px; border-radius: 20px; margin-top: 20px; }
-        input { border: 3px solid #333; padding: 12px; border-radius: 10px; width: 80%; margin: 10px 0; font-size: 18px; text-align: center; }
+        #stats-bar {
+            position: absolute; top: 20px; width: 100%;
+            display: flex; justify-content: space-around;
+            color: white; font-size: 18px; font-weight: bold;
+            text-shadow: 0 0 10px var(--neon);
+            pointer-events: none; z-index: 5;
+        }
+        #footer {
+            margin-top: 20px;
+            color: var(--neon);
+            font-size: 12px;
+            letter-spacing: 5px;
+            font-weight: bold;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
     </style>
+    <!-- Modern Font for 2027 look -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div id="game-box">
-    <div class="top-bar">
-        <div class="coin-tag">🪙 <span id="coins">9000</span></div>
-        <div style="font-size: 25px; font-weight: 900; color: #333;">SCORE: <span id="val-score">0</span></div>
-    </div>
-
-    <div id="menu" style="position: absolute; width:100%; text-align:center; top:20%;">
-        <h1 style="font-size: 50px; color: #333; -webkit-text-stroke: 1px #000;">FLAPPY 3D</h1>
-        <button class="ui-btn play-btn" onclick="startGame()">PLAY</button>
-    </div>
-
-    <div class="bottom-nav">
-        <button class="ui-btn" onclick="openShop('birds')">🔥 BIRDS</button>
-        <button class="ui-btn" onclick="openShop('themes')">❄️ THEMES</button>
-        <button class="ui-btn" onclick="openShop('coins')">💎 SHOP</button>
-    </div>
-
-    <!-- Bird Shop -->
-    <div id="shop-birds" class="overlay">
-        <h2 style="font-size:30px">Select Bird (19)</h2>
-        <div id="bird-grid" class="grid"></div>
-        <br><button class="ui-btn" onclick="closeShop()">BACK</button>
-    </div>
-
-    <!-- Theme Shop -->
-    <div id="shop-themes" class="overlay">
-        <h2 style="font-size:30px">Themes (16)</h2>
-        <div id="theme-grid" class="grid"></div>
-        <br><button class="ui-btn" onclick="closeShop()">BACK</button>
-    </div>
-
-    <!-- Coin Shop -->
-    <div id="shop-coins" class="overlay">
-        <h2 style="font-size:30px">COIN STORE</h2>
-        <div class="redeem-section">
-            <p>Admin Email: <b>Kingadom996@gmail.com</b></p>
-            <input type="text" id="code-input" placeholder="REDEEM CODE">
-            <button class="ui-btn" style="background:#ffd700" onclick="verifyRedeem()">REDEEM 90K COINS</button>
+    <div id="game-container">
+        <div id="stats-bar">
+            <span id="scoreVal">SCORE: 0</span>
+            <span id="coinVal" style="color: #ffdd00;">COINS: 0</span>
         </div>
-        <br><button class="ui-btn" onclick="closeShop()">CLOSE</button>
+
+        <div id="ui-overlay">
+            <div class="main-title" id="menuTitle">NEON FLAPPY<br><span style="font-size: 15px; letter-spacing: 2px; color: #fff;">2027 EDITION</span></div>
+            <div class="btn-group">
+                <button class="neon-btn" onclick="initGame()">START MISSION</button>
+                <button class="neon-btn" onclick="nextTheme()" style="animation: pulse 2s infinite;">CHANGE THEME</button>
+                <button class="neon-btn" style="opacity: 0.6; border-style: dashed;" onclick="alert('Ankit Kumar Ex. Pro-Version Unlocked!')">RANKING</button>
+            </div>
+        </div>
+
+        <canvas id="canvas"></canvas>
     </div>
 
-    <canvas id="game"></canvas>
-</div>
+    <div id="footer">Made by Ankit Kumar Ex.</div>
 
 <script>
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
-    canvas.width = 400; canvas.height = 600;
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const ui = document.getElementById("ui-overlay");
 
-    let coins = 9000;
+    canvas.width = 400;
+    canvas.height = 600;
+
+    // Theme System
+    const themes = [
+        { name: "Cyber Blue", color: "#00f3ff" },
+        { name: "Neon Pink", color: "#ff007f" },
+        { name: "Toxic Green", color: "#39ff14" },
+        { name: "Solar Gold", color: "#ffdd00" },
+        { name: "Deep Purple", color: "#bc13fe" },
+        { name: "Ghost White", color: "#ffffff" }
+    ];
+    let themeIndex = 0;
+    let themeColor = themes[0].color;
+
+    function nextTheme() {
+        themeIndex = (themeIndex + 1) % themes.length;
+        themeColor = themes[themeIndex].color;
+        document.documentElement.style.setProperty('--neon', themeColor);
+        document.getElementById('menuTitle').style.textShadow = `0 0 20px ${themeColor}`;
+        console.log("Theme Switched to: " + themes[themeIndex].name);
+    }
+
     let score = 0;
+    let coins = 0;
     let gameActive = false;
-    let birdIdx = 0;
-    let themeIdx = 0;
-
-    // Modified Assets (High Quality Modified Flappy Styles)
-    const birdStyles = [
-        'yellow', 'red', 'blue', 'pink', 'green', 'black', 'white', 'purple',
-        'fire', 'ice', 'robot', 'ghost', 'king', 'ninja', 'dragon', 'alien', 'gold', 'silver', 'neon'
-    ].map(s => `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${s}&backgroundColor=b6e3f4`);
-
-    const themeStyles = Array.from({length: 16}, (_, i) => `https://picsum.photos/seed/flappy${i+100}/400/600`);
-
-    let bird = { x: 60, y: 300, w: 45, h: 35, v: 0, gravity: 0.6, jump: -10 };
     let pipes = [];
+    let coinObjects = [];
     let frame = 0;
 
-    function startGame() {
+    const bird = {
+        x: 80, y: 300, w: 40, h: 30, velocity: 0, gravity: 0.24, lift: -5.2
+    };
+
+    function initGame() {
+        ui.style.display = "none";
+        score = 0; coins = 0; pipes = []; coinObjects = [];
+        bird.y = 300; bird.velocity = 0;
         gameActive = true;
-        score = 0; pipes = []; bird.y = 300; bird.v = 0;
-        document.getElementById('menu').style.display = 'none';
-        document.querySelector('.bottom-nav').style.display = 'none';
     }
 
-    function stopGame() {
-        gameActive = false;
-        document.getElementById('menu').style.display = 'block';
-        document.querySelector('.bottom-nav').style.display = 'flex';
-        saveData();
-    }
-
-    function openShop(type) {
-        document.getElementById('shop-'+type).style.display = 'block';
-        if(type === 'birds') renderGrid('bird-grid', birdStyles, 'bird');
-        if(type === 'themes') renderGrid('theme-grid', themeStyles, 'theme');
-    }
-
-    function renderGrid(id, arr, type) {
-        const grid = document.getElementById(id);
-        grid.innerHTML = '';
-        arr.forEach((img, i) => {
-            const isSelected = (type === 'bird' ? birdIdx : themeIdx) === i;
-            grid.innerHTML += `
-                <div class="card ${isSelected?'active':''}" onclick="selectItem('${type}', ${i})">
-                    <img src="${img}">
-                    <div style="font-size:10px; font-weight:bold; margin-top:5px;">ITEM ${i+1}</div>
-                </div>`;
-        });
-    }
-
-    function selectItem(type, i) {
-        if(type === 'bird') birdIdx = i;
-        else themeIdx = i;
-        closeShop();
-    }
-
-    function closeShop() {
-        document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
-    }
-
-    function verifyRedeem() {
-        const val = document.getElementById('code-input').value;
-        if(val.toLowerCase() === 'astra90k' || val.length > 6) {
-            coins += 90000;
-            alert("90,000 COINS ADDED!\nLinked to: Kingadom996@gmail.com");
-            saveData();
-            closeShop();
-        } else {
-            alert("Invalid Redeem Code!");
-        }
-    }
-
-    function saveData() { 
-        document.getElementById('coins').innerText = coins;
-        document.getElementById('val-score').innerText = score;
-    }
-
-    function draw() {
-        // Theme Background
-        const bg = new Image(); bg.src = themeStyles[themeIdx];
-        ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
-
-        if(gameActive) {
-            bird.v += bird.gravity;
-            bird.y += bird.v;
-
-            if(frame % 70 === 0) {
-                let h = Math.random() * (canvas.height - 350) + 100;
-                pipes.push({ x: canvas.width, t: h, g: 150 - Math.min(score, 50), passed: false });
-            }
-
-            for(let i=pipes.length-1; i>=0; i--) {
-                pipes[i].x -= (4.5 + score * 0.1);
-                
-                // Original Styled Pipes
-                ctx.fillStyle = "#73bf2e";
-                ctx.strokeStyle = "#333";
-                ctx.lineWidth = 4;
-                // Top
-                ctx.fillRect(pipes[i].x, 0, 60, pipes[i].t);
-                ctx.strokeRect(pipes[i].x, 0, 60, pipes[i].t);
-                // Bottom
-                ctx.fillRect(pipes[i].x, pipes[i].t + pipes[i].g, 60, canvas.height);
-                ctx.strokeRect(pipes[i].x, pipes[i].t + pipes[i].g, 60, canvas.height);
-
-                if(bird.x < pipes[i].x + 60 && bird.x + bird.w > pipes[i].x && (bird.y < pipes[i].t || bird.y + bird.h > pipes[i].t + pipes[i].g)) stopGame();
-                if(!pipes[i].passed && pipes[i].x < bird.x) { score++; coins += 20; pipes[i].passed = true; saveData(); }
-                if(pipes[i].x < -60) pipes.splice(i, 1);
-            }
-            if(bird.y > canvas.height || bird.y < 0) stopGame();
-            frame++;
-        }
-
-        // Draw Bird (Ice/Fire styles handled by indices)
-        const bImg = new Image(); bImg.src = birdStyles[birdIdx];
+    function drawBird() {
         ctx.save();
-        ctx.translate(bird.x + bird.w/2, bird.y + bird.h/2);
-        ctx.rotate(Math.min(Math.PI/4, Math.max(-Math.PI/4, bird.v * 0.1)));
-        ctx.drawImage(bImg, -bird.w/2, -bird.h/2, bird.w, bird.h);
-        ctx.restore();
+        ctx.translate(bird.x, bird.y);
+        ctx.rotate(bird.velocity * 0.06);
+        
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = themeColor;
 
-        requestAnimationFrame(draw);
+        // Futuristic Bird Shape
+        ctx.fillStyle = "#000";
+        ctx.strokeStyle = themeColor;
+        ctx.lineWidth = 3;
+        
+        ctx.beginPath();
+        ctx.moveTo(-20, -10);
+        ctx.lineTo(15, -15);
+        ctx.lineTo(25, 0); // Beak tip
+        ctx.lineTo(15, 15);
+        ctx.lineTo(-20, 10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Eye Glow
+        ctx.fillStyle = themeColor;
+        ctx.beginPath(); ctx.arc(8, -4, 3, 0, Math.PI*2); ctx.fill();
+
+        ctx.restore();
     }
 
-    window.addEventListener('keydown', (e) => { if(e.code === 'Space' && gameActive) bird.v = bird.jump; });
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); if(gameActive) bird.v = bird.jump; });
+    function update() {
+        if (!gameActive) return;
 
-    saveData();
-    draw();
+        bird.velocity += bird.gravity;
+        bird.y += bird.velocity;
+
+        // Pipe Generation
+        if (frame % 95 === 0) {
+            let gap = 170;
+            let topH = Math.random() * (canvas.height - gap - 120) + 60;
+            pipes.push({ x: canvas.width, y: topH, gap: gap });
+            
+            if(Math.random() > 0.5) {
+                coinObjects.push({ x: canvas.width + 100, y: topH + gap/2 });
+            }
+        }
+
+        pipes.forEach((p, i) => {
+            p.x -= 3.2;
+            
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = themeColor;
+            ctx.strokeStyle = themeColor;
+            ctx.lineWidth = 4;
+            
+            // Draw Neon Pipes with rounded corners
+            ctx.strokeRect(p.x, -10, 55, p.y + 10);
+            ctx.strokeRect(p.x, p.y + p.gap, 55, canvas.height - p.y - p.gap + 10);
+
+            // Collision
+            if (bird.x + 15 > p.x && bird.x - 15 < p.x + 55 && (bird.y - 12 < p.y || bird.y + 12 > p.y + p.gap)) {
+                gameOver();
+            }
+            if (p.x < bird.x && !p.scored) { score++; p.scored = true; }
+            if (p.x < -100) pipes.splice(i, 1);
+        });
+
+        // Coin Logic
+        coinObjects.forEach((c, i) => {
+            c.x -= 3.2;
+            ctx.shadowBlur = 15; ctx.shadowColor = "#ffdd00";
+            ctx.fillStyle = "#ffdd00";
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, 8, 0, Math.PI*2);
+            ctx.fill();
+            
+            if(Math.hypot(bird.x - c.x, bird.y - c.y) < 30) {
+                coins += 5; // One coin gives 5 bonus
+                coinObjects.splice(i, 1);
+            }
+            if(c.x < -20) coinObjects.splice(i, 1);
+        });
+
+        if (bird.y > canvas.height || bird.y < 0) gameOver();
+
+        document.getElementById("scoreVal").innerText = `SCORE: ${score}`;
+        document.getElementById("coinVal").innerText = `COINS: ${coins}`;
+    }
+
+    function render() {
+        ctx.fillStyle = "#050505";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Background Matrix Grid
+        ctx.strokeStyle = themeColor;
+        ctx.globalAlpha = 0.1;
+        for(let i=0; i<canvas.width; i+=50) {
+            ctx.beginPath(); ctx.moveTo(i + (frame%50), 0); ctx.lineTo(i + (frame%50), canvas.height); ctx.stroke();
+        }
+        ctx.globalAlpha = 1.0;
+
+        drawBird();
+        update();
+        frame++;
+        requestAnimationFrame(render);
+    }
+
+    function gameOver() {
+        gameActive = false;
+        ui.style.display = "flex";
+        document.getElementById('menuTitle').innerHTML = "<span style='color:red'>CORE CRITICAL</span><br><span style='font-size:14px; color:white'>SYSTEM REBOOT REQUIRED</span>";
+    }
+
+    function jump() { if(gameActive) bird.velocity = bird.lift; }
+    window.onkeydown = (e) => { if(e.code === "Space" || e.code === "ArrowUp") jump(); };
+    canvas.ontouchstart = (e) => { e.preventDefault(); jump(); };
+    canvas.onmousedown = (e) => { if(gameActive) jump(); };
+
+    render();
 </script>
 </body>
 </html>
