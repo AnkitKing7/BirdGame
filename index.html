@@ -3,236 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Flappy Bird 3D Cartoon Edition</title>
+    <title>AstraAi: Extreme 3D Flap</title>
     <style>
-        :root { --main-bg: #ffffff; --ui-accent: #f0f0f0; --gold: #FFD700; }
-        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eee; }
+        :root { --glass: rgba(255, 255, 255, 0.9); --gold: #FFD700; --play-green: #01875f; }
+        body { margin: 0; overflow: hidden; font-family: 'Poppins', sans-serif; background: #f0f2f5; }
         
-        #game-container { position: relative; width: 400px; height: 650px; margin: auto; background: var(--main-bg); overflow: hidden; border: 8px solid #333; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+        #game-box { position: relative; width: 420px; height: 700px; margin: auto; border: 10px solid #222; border-radius: 30px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
         
-        /* UI Elements */
-        .top-ui { position: absolute; top: 20px; width: 100%; text-align: center; z-index: 10; }
-        .bottom-ui { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-around; z-index: 10; }
+        /* UI Screens */
+        .ui-panel { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 40px 20px; z-index: 100; transition: 0.5s; }
+        .hidden { transform: translateY(-100%); opacity: 0; pointer-events: none; }
         
-        .btn-3d {
-            background: #fff; border: 4px solid #333; border-radius: 12px; padding: 12px 24px;
-            font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 6px 0 #333;
-            transition: 0.1s; display: flex; align-items: center; gap: 8px;
-        }
-        .btn-3d:active { transform: translateY(4px); box-shadow: 0 2px 0 #333; }
-        .btn-play { background: #4CAF50; color: white; border-color: #1b5e20; box-shadow: 0 6px 0 #1b5e20; font-size: 24px; }
+        .btn-play { background: #fff; border: 4px solid #222; border-radius: 20px; padding: 15px 60px; font-size: 30px; font-weight: 900; cursor: pointer; box-shadow: 0 8px 0 #222; transition: 0.1s; color: #222; }
+        .btn-play:active { transform: translateY(4px); box-shadow: 0 4px 0 #222; }
 
-        .coin-display { position: absolute; top: 20px; right: 20px; font-weight: bold; font-size: 20px; color: #333; background: gold; padding: 5px 15px; border-radius: 20px; border: 3px solid #333; z-index: 11; }
+        .bottom-nav { width: 100%; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .nav-btn { background: #fff; border: 3px solid #333; border-radius: 12px; padding: 10px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #333; }
 
-        /* Shop Overlays */
-        .overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.95); z-index: 50; padding: 20px; display: none; overflow-y: auto; text-align: center; }
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
-        .item { border: 3px solid #333; padding: 10px; border-radius: 10px; cursor: pointer; background: #fff; position: relative; }
-        .item.owned { background: #e8f5e9; border-color: #4CAF50; }
-        .item img { width: 100%; height: 50px; object-fit: contain; }
+        /* Shop Styling */
+        .overlay { position: absolute; inset: 0; background: var(--glass); z-index: 200; display: none; padding: 20px; text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-height: 450px; overflow-y: auto; padding: 10px; }
+        .card { background: #fff; border: 2px solid #ddd; border-radius: 15px; padding: 8px; position: relative; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .card.active { border-color: var(--play-green); background: #e6f4ea; }
+        .card img { width: 100%; height: 60px; object-fit: contain; }
 
-        #redeem-box { background: #f9f9f9; padding: 15px; border: 3px dashed #333; border-radius: 10px; margin-top: 20px; }
-        input { padding: 10px; border: 2px solid #333; border-radius: 5px; width: 80%; margin: 10px 0; }
+        /* Coin Shop Special */
+        .play-store-ui { background: white; border-radius: 20px; padding: 20px; text-align: left; }
+        .email-tag { font-size: 12px; color: #5f6368; margin-bottom: 10px; }
+        .price-chip { background: #e8f0fe; color: #1967d2; border-radius: 8px; padding: 5px 10px; display: inline-block; margin: 10px 0; font-weight: bold; }
+        
+        .coin-counter { position: absolute; top: 15px; right: 20px; background: gold; border: 3px solid #222; border-radius: 30px; padding: 5px 20px; font-weight: bold; font-size: 20px; z-index: 150; }
     </style>
 </head>
 <body>
 
-<div id="game-container">
-    <div class="coin-display">🪙 <span id="coin-count">0</span></div>
+<div id="game-box">
+    <div class="coin-counter">🪙 <span id="coin-val">0</span></div>
 
-    <!-- Main Buttons -->
-    <div class="top-ui">
-        <h1 style="color:#333; -webkit-text-stroke: 1px #000; font-size: 40px; margin-bottom: 20px;">FLAPPY 3D</h1>
-        <button id="btn-play-main" class="btn-3d btn-play" onclick="startGame()">PLAY GAME</button>
-    </div>
-
-    <div class="bottom-ui">
-        <button class="btn-3d" onclick="openShop('birds')">🐦 BIRDS</button>
-        <button class="btn-3d" onclick="openShop('theme')">🎨 THEME</button>
-        <button class="btn-3d" onclick="openShop('coin')">🪙 COIN</button>
-    </div>
-
-    <!-- Bird Shop -->
-    <div id="shop-birds" class="overlay">
-        <h2>BIRDS SHOP (19 Total)</h2>
-        <div id="bird-grid" class="grid"></div>
-        <br><button class="btn-3d" onclick="closeOverlays()">CLOSE</button>
-    </div>
-
-    <!-- Theme Shop -->
-    <div id="shop-theme" class="overlay">
-        <h2>BACKGROUNDS (16 Total)</h2>
-        <div id="theme-grid" class="grid"></div>
-        <br><button class="btn-3d" onclick="closeOverlays()">CLOSE</button>
-    </div>
-
-    <!-- Coin Shop -->
-    <div id="shop-coin" class="overlay">
-        <h2>COIN SHOP</h2>
-        <p>Buy Coins using Google Redeem Code</p>
-        <div id="redeem-box">
-            <small>Email: Kingadom996@gmail.com</small><br>
-            <input type="text" id="redeem-code" placeholder="Enter Redeem Code">
-            <button class="btn-3d" onclick="redeemCode()" style="font-size: 14px; background: #ffeb3b;">REDEEM TO PLAY STORE</button>
+    <!-- MAIN MENU -->
+    <div id="menu" class="ui-panel">
+        <div style="text-align:center">
+            <h1 style="font-size: 50px; color: #222; -webkit-text-stroke: 1.5px #fff;">FLAPPY<br>ULTRA</h1>
         </div>
-        <p>Or Score points to earn coins!</p>
-        <button class="btn-3d" onclick="closeOverlays()">CLOSE</button>
+        
+        <button class="btn-play" onclick="startGame()">PLAY</button>
+
+        <div class="bottom-nav">
+            <button class="nav-btn" onclick="show('birds')">🐦 BIRDS</button>
+            <button class="nav-btn" onclick="show('themes')">🏔️ THEMES</button>
+            <button class="nav-btn" onclick="show('coins')">💎 COINS</button>
+        </div>
     </div>
 
-    <canvas id="gameCanvas"></canvas>
+    <!-- SHOPS -->
+    <div id="shop-birds" class="overlay">
+        <h3>SELECT HERO (19)</h3>
+        <div id="bird-grid" class="grid"></div>
+        <button class="btn-play" style="margin-top:20px; font-size:16px" onclick="hide()">BACK</button>
+    </div>
+
+    <div id="shop-themes" class="overlay">
+        <h3>LEVEL THEMES (16)</h3>
+        <div id="theme-grid" class="grid"></div>
+        <button class="btn-play" style="margin-top:20px; font-size:16px" onclick="hide()">BACK</button>
+    </div>
+
+    <div id="shop-coins" class="overlay">
+        <div class="play-store-ui">
+            <h3>Google Play Store</h3>
+            <div class="email-tag">Logged as: <b>Kingadom996@gmail.com</b></div>
+            <div id="redeem-box">
+                <input type="text" id="rcode" placeholder="Enter Redeem Code" style="width:90%; padding:12px; border:2px solid #ddd; border-radius:10px">
+                <button class="nav-btn" style="width:100%; margin-top:10px; background:var(--play-green); color:white; border:none" onclick="redeem()">REDEEM CODE</button>
+            </div>
+            <hr>
+            <div class="price-chip">9K COINS PACK - FREE GIFT</div>
+            <button class="nav-btn" onclick="add9k()" style="width:100%; background:gold">CLAIM 9,000 COINS</button>
+        </div>
+        <button class="btn-play" style="margin-top:20px; font-size:16px" onclick="hide()">CLOSE</button>
+    </div>
+
+    <canvas id="c"></canvas>
 </div>
 
 <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-    canvas.width = 400; canvas.height = 650;
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 420; canvas.height = 700;
 
-    // Game Variables
-    let coins = parseInt(localStorage.getItem('coins')) || 0;
-    let unlockedBirds = JSON.parse(localStorage.getItem('unlockedBirds')) || [0];
-    let unlockedBgs = JSON.parse(localStorage.getItem('unlockedBgs')) || [0];
-    let currentBirdIdx = 0;
-    let currentBgIdx = 0;
-    let gameRunning = false;
-    let score = 0;
+    let coins = parseInt(localStorage.getItem('f_coins')) || 0;
+    let unlockedB = JSON.parse(localStorage.getItem('f_uB')) || [0];
+    let unlockedT = JSON.parse(localStorage.getItem('f_uT')) || [0];
+    let curB = 0, curT = 0, playing = false, score = 0, pipes = [], frame = 0;
+    let birdObj = { x: 60, y: 300, w: 46, h: 36, v: 0, g: 0.6, j: -9 };
 
-    // Assets (Placeholder URLs)
-    const birdImages = Array.from({length: 19}, (_, i) => `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${i+50}`);
-    const bgImages = Array.from({length: 16}, (_, i) => `https://picsum.photos/seed/${i+100}/400/650`);
+    // HD Assets Lists
+    const BIRD_ASSETS = Array.from({length: 19}, (_, i) => `https://api.dicebear.com/7.x/adventurer/svg?seed=${i + 200}`);
+    const THEME_ASSETS = [
+        "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=400&q=80", // Mountains
+        "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=400&q=80", // Forest
+        "https://images.unsplash.com/photo-1475274047050-1d0c0975c63e?auto=format&fit=crop&w=400&q=80", // Night
+        "https://images.unsplash.com/photo-1478358173913-b24474240a2c?auto=format&fit=crop&w=400&q=80", // Jungle
+        "https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?auto=format&fit=crop&w=400&q=80", // Ice
+        "https://images.unsplash.com/photo-1542640244-7e672d6cef21?auto=format&fit=crop&w=400&q=80", // Japan
+        "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=400&q=80", // Lava/Fire
+        "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=400&q=80", // Abstract
+        "https://images.unsplash.com/photo-1477346611705-65d1883cee1e?auto=format&fit=crop&w=400&q=80", // Dark Space
+        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80", // Desert
+        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=400&q=80", // Nature
+        "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=400&q=80", // Farm
+        "https://images.unsplash.com/photo-1536431311719-398b6704d4cc?auto=format&fit=crop&w=400&q=80", // Mist
+        "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=80", // Lake
+        "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=400&q=80", // Meadow
+        "https://images.unsplash.com/photo-1502472545331-105156f0851e?auto=format&fit=crop&w=400&q=80"  // Pink Clouds
+    ];
 
-    let bird = { x: 50, y: 300, w: 40, h: 32, v: 0, g: 0.5, jump: -8 };
-    let pipes = [];
-    let frame = 0;
-
-    function updateStats() {
-        document.getElementById('coin-count').innerText = coins;
-        localStorage.setItem('coins', coins);
-        localStorage.setItem('unlockedBirds', JSON.stringify(unlockedBirds));
-        localStorage.setItem('unlockedBgs', JSON.stringify(unlockedBgs));
+    function save() {
+        document.getElementById('coin-val').innerText = coins;
+        localStorage.setItem('f_coins', coins);
+        localStorage.setItem('f_uB', JSON.stringify(unlockedB));
+        localStorage.setItem('f_uT', JSON.stringify(unlockedT));
     }
 
-    function openShop(type) {
-        closeOverlays();
-        document.getElementById('shop-'+type).style.display = 'block';
-        if(type === 'birds') renderBirds();
-        if(type === 'theme') renderThemes();
-    }
+    function show(t) { hide(); document.getElementById('shop-'+t).style.display = 'block'; if(t==='birds') drawBGrid(); if(t==='themes') drawTGrid(); }
+    function hide() { document.querySelectorAll('.overlay').forEach(e=>e.style.display='none'); }
 
-    function closeOverlays() {
-        document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
-    }
-
-    function renderBirds() {
-        const grid = document.getElementById('bird-grid');
-        grid.innerHTML = '';
-        birdImages.forEach((img, i) => {
-            const isOwned = unlockedBirds.includes(i);
-            grid.innerHTML += `
-                <div class="item ${isOwned?'owned':''}" onclick="selectBird(${i})">
-                    <img src="${img}">
-                    <div style="font-size:10px">${isOwned ? 'SELECT' : '🪙 '+(i*100)}</div>
-                </div>`;
+    function drawBGrid() {
+        const g = document.getElementById('bird-grid'); g.innerHTML='';
+        BIRD_ASSETS.forEach((img, i) => {
+            const owned = unlockedB.includes(i);
+            g.innerHTML += `<div class="card ${curB===i?'active':''}" onclick="buyB(${i})">
+                <img src="${img}"><br><small>${owned?'SELECT':'🪙'+(i*500)}</small></div>`;
         });
     }
 
-    function renderThemes() {
-        const grid = document.getElementById('theme-grid');
-        grid.innerHTML = '';
-        bgImages.forEach((img, i) => {
-            const isOwned = unlockedBgs.includes(i);
-            grid.innerHTML += `
-                <div class="item ${isOwned?'owned':''}" onclick="selectBg(${i})">
-                    <img src="${img}" style="height:40px; border-radius:5px">
-                    <div style="font-size:10px">${isOwned ? 'SELECT' : '🪙 '+(i*200)}</div>
-                </div>`;
+    function drawTGrid() {
+        const g = document.getElementById('theme-grid'); g.innerHTML='';
+        THEME_ASSETS.forEach((img, i) => {
+            const owned = unlockedT.includes(i);
+            g.innerHTML += `<div class="card ${curT===i?'active':''}" onclick="buyT(${i})">
+                <img src="${img}" style="height:40px; border-radius:8px"><br><small>${owned?'SELECT':'🪙'+(i*800)}</small></div>`;
         });
     }
 
-    function selectBird(i) {
-        if(unlockedBirds.includes(i)) { currentBirdIdx = i; alert("Bird Selected!"); }
-        else if(coins >= i*100) { coins -= i*100; unlockedBirds.push(i); updateStats(); renderBirds(); }
+    function buyB(i) {
+        if(unlockedB.includes(i)) { curB = i; hide(); }
+        else if(coins >= i*500) { coins -= i*500; unlockedB.push(i); save(); drawBGrid(); }
     }
 
-    function selectBg(i) {
-        if(unlockedBgs.includes(i)) { currentBgIdx = i; alert("Theme Selected!"); }
-        else if(coins >= i*200) { coins -= i*200; unlockedBgs.push(i); updateStats(); renderThemes(); }
+    function buyT(i) {
+        if(unlockedT.includes(i)) { curT = i; hide(); }
+        else if(coins >= i*800) { coins -= i*800; unlockedT.push(i); save(); drawTGrid(); }
     }
 
-    function redeemCode() {
-        const code = document.getElementById('redeem-code').value;
-        if(code.length > 5) {
-            alert("Redeem Success for: Kingadom996@gmail.com\n1000 Coins added to your account!");
-            coins += 1000; updateStats();
-        } else { alert("Invalid Code!"); }
-    }
+    function add9k() { coins += 9000; save(); alert("9000 Coins Granted to Kingadom996@gmail.com!"); }
+    function redeem() { let c = document.getElementById('rcode').value; if(c.length > 4) { coins+=1000; save(); alert("Code Applied!"); } }
 
     function startGame() {
-        gameRunning = true;
-        score = 0; pipes = []; bird.y = 300; bird.v = 0; frame = 0;
-        document.getElementById('btn-play-main').parentElement.style.display = 'none';
-        document.querySelector('.bottom-ui').style.display = 'none';
-    }
-
-    function stopGame() {
-        gameRunning = false;
-        document.getElementById('btn-play-main').parentElement.style.display = 'block';
-        document.querySelector('.bottom-ui').style.display = 'flex';
-        updateStats();
+        playing = true; score = 0; pipes = []; birdObj.y = 300; birdObj.v = 0; frame = 0;
+        document.getElementById('menu').classList.add('hidden');
     }
 
     function loop() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Background
-        const bg = new Image(); bg.src = bgImages[currentBgIdx];
-        ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0,0,420,700);
+        let b = new Image(); b.src = THEME_ASSETS[curT];
+        ctx.drawImage(b, 0, 0, 420, 700);
 
-        if(gameRunning) {
-            bird.v += bird.g;
-            bird.y += bird.v;
-
-            if(frame % 80 === 0) {
-                let gap = 150 - Math.min(score, 60);
-                let h = Math.random() * (canvas.height - 300) + 100;
-                pipes.push({ x: canvas.width, t: h, g: gap, passed: false });
+        if(playing) {
+            birdObj.v += birdObj.g;
+            birdObj.y += birdObj.v;
+            if(frame % 75 === 0) {
+                let gp = 160 - Math.min(score, 70);
+                pipes.push({ x: 420, t: Math.random()*300+100, g: gp });
             }
-
-            for(let i=pipes.length-1; i>=0; i--) {
-                pipes[i].x -= (4 + score*0.1);
-                
-                ctx.fillStyle = "#333";
-                ctx.fillRect(pipes[i].x, 0, 50, pipes[i].t);
-                ctx.fillRect(pipes[i].x, pipes[i].t + pipes[i].g, 50, canvas.height);
-
-                if(bird.x < pipes[i].x + 50 && bird.x + bird.w > pipes[i].x && (bird.y < pipes[i].t || bird.y + bird.h > pipes[i].t + pipes[i].g)) {
-                    stopGame();
+            pipes.forEach((p, i) => {
+                p.x -= (5 + score*0.1);
+                ctx.fillStyle = "#222";
+                ctx.fillRect(p.x, 0, 60, p.t);
+                ctx.fillRect(p.x, p.t+p.g, 60, 700);
+                if(birdObj.x < p.x+60 && birdObj.x+40 > p.x && (birdObj.y < p.t || birdObj.y+30 > p.t+p.g)) {
+                    playing = false; document.getElementById('menu').classList.remove('hidden'); save();
                 }
-                if(!pipes[i].passed && pipes[i].x < bird.x) {
-                    score++; coins += 10; pipes[i].passed = true;
-                }
-                if(pipes[i].x < -50) pipes.splice(i, 1);
-            }
-
-            if(bird.y > canvas.height || bird.y < 0) stopGame();
+                if(p.x === 60) { score++; coins += 10; save(); }
+            });
+            pipes = pipes.filter(p => p.x > -100);
+            if(birdObj.y > 700 || birdObj.y < 0) { playing = false; document.getElementById('menu').classList.remove('hidden'); save(); }
             frame++;
         }
 
-        // Draw Bird
-        const bImg = new Image(); bImg.src = birdImages[currentBirdIdx];
-        ctx.drawImage(bImg, bird.x, bird.y, bird.w, bird.h);
-
-        if(gameRunning) {
-            ctx.fillStyle = "#333"; ctx.font = "bold 40px Arial";
-            ctx.fillText(score, canvas.width/2 - 10, 100);
-        }
-
+        let pI = new Image(); pI.src = BIRD_ASSETS[curB];
+        ctx.drawImage(pI, birdObj.x, birdObj.y, birdObj.w, birdObj.h);
+        
+        if(playing) { ctx.fillStyle="#fff"; ctx.font="900 60px Arial"; ctx.fillText(score, 180, 100); }
         requestAnimationFrame(loop);
     }
 
-    window.addEventListener('keydown', (e) => { if(e.code === 'Space') bird.v = bird.jump; });
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); bird.v = bird.jump; });
-
-    updateStats();
+    save();
     loop();
 </script>
 </body>
