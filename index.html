@@ -3,203 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AstraAi: Extreme 3D Flap</title>
+    <title>AstraAi: Flappy 3D Pro</title>
     <style>
-        :root { --glass: rgba(255, 255, 255, 0.9); --gold: #FFD700; --play-green: #01875f; }
-        body { margin: 0; overflow: hidden; font-family: 'Poppins', sans-serif; background: #f0f2f5; }
+        :root { --white: #ffffff; --border: #333333; --neon-blue: #00d2ff; }
+        body { margin: 0; overflow: hidden; font-family: 'Arial Rounded MT Bold', sans-serif; background: #f0f0f0; }
         
-        #game-box { position: relative; width: 420px; height: 700px; margin: auto; border: 10px solid #222; border-radius: 30px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+        #game-box { position: relative; width: 100vw; height: 100vh; max-width: 450px; margin: auto; background: #fff; border: 10px solid var(--border); box-sizing: border-box; }
         
-        /* UI Screens */
-        .ui-panel { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 40px 20px; z-index: 100; transition: 0.5s; }
-        .hidden { transform: translateY(-100%); opacity: 0; pointer-events: none; }
-        
-        .btn-play { background: #fff; border: 4px solid #222; border-radius: 20px; padding: 15px 60px; font-size: 30px; font-weight: 900; cursor: pointer; box-shadow: 0 8px 0 #222; transition: 0.1s; color: #222; }
-        .btn-play:active { transform: translateY(4px); box-shadow: 0 4px 0 #222; }
+        /* 3D UI Design */
+        .ui-btn { 
+            background: var(--white); border: 5px solid var(--border); border-radius: 15px; 
+            padding: 12px; font-weight: 900; cursor: pointer; box-shadow: 0 6px 0 var(--border);
+            transition: 0.1s; font-size: 16px;
+        }
+        .ui-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--border); }
+        .play-btn { background: #5ced73; font-size: 30px; margin-top: 50px; padding: 20px 50px; }
 
-        .bottom-nav { width: 100%; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .nav-btn { background: #fff; border: 3px solid #333; border-radius: 12px; padding: 10px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #333; }
-
-        /* Shop Styling */
-        .overlay { position: absolute; inset: 0; background: var(--glass); z-index: 200; display: none; padding: 20px; text-align: center; }
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-height: 450px; overflow-y: auto; padding: 10px; }
-        .card { background: #fff; border: 2px solid #ddd; border-radius: 15px; padding: 8px; position: relative; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .card.active { border-color: var(--play-green); background: #e6f4ea; }
-        .card img { width: 100%; height: 60px; object-fit: contain; }
-
-        /* Coin Shop Special */
-        .play-store-ui { background: white; border-radius: 20px; padding: 20px; text-align: left; }
-        .email-tag { font-size: 12px; color: #5f6368; margin-bottom: 10px; }
-        .price-chip { background: #e8f0fe; color: #1967d2; border-radius: 8px; padding: 5px 10px; display: inline-block; margin: 10px 0; font-weight: bold; }
+        .top-bar { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; z-index: 10; }
+        .coin-tag { background: #ffd700; border: 3px solid #333; padding: 5px 15px; border-radius: 20px; font-size: 20px; box-shadow: 0 4px 0 #333; }
         
-        .coin-counter { position: absolute; top: 15px; right: 20px; background: gold; border: 3px solid #222; border-radius: 30px; padding: 5px 20px; font-weight: bold; font-size: 20px; z-index: 150; }
+        .bottom-nav { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-evenly; z-index: 10; }
+
+        /* Modified Shop */
+        .overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.98); z-index: 100; display: none; padding: 30px 10px; text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-height: 60vh; overflow-y: auto; padding: 10px; }
+        
+        .card { border: 4px solid var(--border); border-radius: 12px; padding: 10px; background: #f9f9f9; box-shadow: 0 5px 0 var(--border); position: relative; cursor: pointer; }
+        .card.active { background: #00d2ff; }
+        .card img { width: 45px; height: 45px; filter: drop-shadow(2px 2px 0px #000); }
+
+        .redeem-section { background: #fff; border: 4px dashed #333; padding: 20px; border-radius: 20px; margin-top: 20px; }
+        input { border: 3px solid #333; padding: 12px; border-radius: 10px; width: 80%; margin: 10px 0; font-size: 18px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div id="game-box">
-    <div class="coin-counter">🪙 <span id="coin-val">0</span></div>
-
-    <!-- MAIN MENU -->
-    <div id="menu" class="ui-panel">
-        <div style="text-align:center">
-            <h1 style="font-size: 50px; color: #222; -webkit-text-stroke: 1.5px #fff;">FLAPPY<br>ULTRA</h1>
-        </div>
-        
-        <button class="btn-play" onclick="startGame()">PLAY</button>
-
-        <div class="bottom-nav">
-            <button class="nav-btn" onclick="show('birds')">🐦 BIRDS</button>
-            <button class="nav-btn" onclick="show('themes')">🏔️ THEMES</button>
-            <button class="nav-btn" onclick="show('coins')">💎 COINS</button>
-        </div>
+    <div class="top-bar">
+        <div class="coin-tag">🪙 <span id="coins">9000</span></div>
+        <div style="font-size: 25px; font-weight: 900; color: #333;">SCORE: <span id="val-score">0</span></div>
     </div>
 
-    <!-- SHOPS -->
+    <div id="menu" style="position: absolute; width:100%; text-align:center; top:20%;">
+        <h1 style="font-size: 50px; color: #333; -webkit-text-stroke: 1px #000;">FLAPPY 3D</h1>
+        <button class="ui-btn play-btn" onclick="startGame()">PLAY</button>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="ui-btn" onclick="openShop('birds')">🔥 BIRDS</button>
+        <button class="ui-btn" onclick="openShop('themes')">❄️ THEMES</button>
+        <button class="ui-btn" onclick="openShop('coins')">💎 SHOP</button>
+    </div>
+
+    <!-- Bird Shop -->
     <div id="shop-birds" class="overlay">
-        <h3>SELECT HERO (19)</h3>
+        <h2 style="font-size:30px">Select Bird (19)</h2>
         <div id="bird-grid" class="grid"></div>
-        <button class="btn-play" style="margin-top:20px; font-size:16px" onclick="hide()">BACK</button>
+        <br><button class="ui-btn" onclick="closeShop()">BACK</button>
     </div>
 
+    <!-- Theme Shop -->
     <div id="shop-themes" class="overlay">
-        <h3>LEVEL THEMES (16)</h3>
+        <h2 style="font-size:30px">Themes (16)</h2>
         <div id="theme-grid" class="grid"></div>
-        <button class="btn-play" style="margin-top:20px; font-size:16px" onclick="hide()">BACK</button>
+        <br><button class="ui-btn" onclick="closeShop()">BACK</button>
     </div>
 
+    <!-- Coin Shop -->
     <div id="shop-coins" class="overlay">
-        <div class="play-store-ui">
-            <h3>Google Play Store</h3>
-            <div class="email-tag">Logged as: <b>Kingadom996@gmail.com</b></div>
-            <div id="redeem-box">
-                <input type="text" id="rcode" placeholder="Enter Redeem Code" style="width:90%; padding:12px; border:2px solid #ddd; border-radius:10px">
-                <button class="nav-btn" style="width:100%; margin-top:10px; background:var(--play-green); color:white; border:none" onclick="redeem()">REDEEM CODE</button>
-            </div>
-            <hr>
-            <div class="price-chip">9K COINS PACK - FREE GIFT</div>
-            <button class="nav-btn" onclick="add9k()" style="width:100%; background:gold">CLAIM 9,000 COINS</button>
+        <h2 style="font-size:30px">COIN STORE</h2>
+        <div class="redeem-section">
+            <p>Admin Email: <b>Kingadom996@gmail.com</b></p>
+            <input type="text" id="code-input" placeholder="REDEEM CODE">
+            <button class="ui-btn" style="background:#ffd700" onclick="verifyRedeem()">REDEEM 90K COINS</button>
         </div>
-        <button class="btn-play" style="margin-top:20px; font-size:16px" onclick="hide()">CLOSE</button>
+        <br><button class="ui-btn" onclick="closeShop()">CLOSE</button>
     </div>
 
-    <canvas id="c"></canvas>
+    <canvas id="game"></canvas>
 </div>
 
 <script>
-    const canvas = document.getElementById('c');
+    const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
-    canvas.width = 420; canvas.height = 700;
+    canvas.width = 400; canvas.height = 600;
 
-    let coins = parseInt(localStorage.getItem('f_coins')) || 0;
-    let unlockedB = JSON.parse(localStorage.getItem('f_uB')) || [0];
-    let unlockedT = JSON.parse(localStorage.getItem('f_uT')) || [0];
-    let curB = 0, curT = 0, playing = false, score = 0, pipes = [], frame = 0;
-    let birdObj = { x: 60, y: 300, w: 46, h: 36, v: 0, g: 0.6, j: -9 };
+    let coins = 9000;
+    let score = 0;
+    let gameActive = false;
+    let birdIdx = 0;
+    let themeIdx = 0;
 
-    // HD Assets Lists
-    const BIRD_ASSETS = Array.from({length: 19}, (_, i) => `https://api.dicebear.com/7.x/adventurer/svg?seed=${i + 200}`);
-    const THEME_ASSETS = [
-        "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=400&q=80", // Mountains
-        "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=400&q=80", // Forest
-        "https://images.unsplash.com/photo-1475274047050-1d0c0975c63e?auto=format&fit=crop&w=400&q=80", // Night
-        "https://images.unsplash.com/photo-1478358173913-b24474240a2c?auto=format&fit=crop&w=400&q=80", // Jungle
-        "https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?auto=format&fit=crop&w=400&q=80", // Ice
-        "https://images.unsplash.com/photo-1542640244-7e672d6cef21?auto=format&fit=crop&w=400&q=80", // Japan
-        "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=400&q=80", // Lava/Fire
-        "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=400&q=80", // Abstract
-        "https://images.unsplash.com/photo-1477346611705-65d1883cee1e?auto=format&fit=crop&w=400&q=80", // Dark Space
-        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80", // Desert
-        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=400&q=80", // Nature
-        "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=400&q=80", // Farm
-        "https://images.unsplash.com/photo-1536431311719-398b6704d4cc?auto=format&fit=crop&w=400&q=80", // Mist
-        "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=80", // Lake
-        "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=400&q=80", // Meadow
-        "https://images.unsplash.com/photo-1502472545331-105156f0851e?auto=format&fit=crop&w=400&q=80"  // Pink Clouds
-    ];
+    // Modified Assets (High Quality Modified Flappy Styles)
+    const birdStyles = [
+        'yellow', 'red', 'blue', 'pink', 'green', 'black', 'white', 'purple',
+        'fire', 'ice', 'robot', 'ghost', 'king', 'ninja', 'dragon', 'alien', 'gold', 'silver', 'neon'
+    ].map(s => `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${s}&backgroundColor=b6e3f4`);
 
-    function save() {
-        document.getElementById('coin-val').innerText = coins;
-        localStorage.setItem('f_coins', coins);
-        localStorage.setItem('f_uB', JSON.stringify(unlockedB));
-        localStorage.setItem('f_uT', JSON.stringify(unlockedT));
-    }
+    const themeStyles = Array.from({length: 16}, (_, i) => `https://picsum.photos/seed/flappy${i+100}/400/600`);
 
-    function show(t) { hide(); document.getElementById('shop-'+t).style.display = 'block'; if(t==='birds') drawBGrid(); if(t==='themes') drawTGrid(); }
-    function hide() { document.querySelectorAll('.overlay').forEach(e=>e.style.display='none'); }
-
-    function drawBGrid() {
-        const g = document.getElementById('bird-grid'); g.innerHTML='';
-        BIRD_ASSETS.forEach((img, i) => {
-            const owned = unlockedB.includes(i);
-            g.innerHTML += `<div class="card ${curB===i?'active':''}" onclick="buyB(${i})">
-                <img src="${img}"><br><small>${owned?'SELECT':'🪙'+(i*500)}</small></div>`;
-        });
-    }
-
-    function drawTGrid() {
-        const g = document.getElementById('theme-grid'); g.innerHTML='';
-        THEME_ASSETS.forEach((img, i) => {
-            const owned = unlockedT.includes(i);
-            g.innerHTML += `<div class="card ${curT===i?'active':''}" onclick="buyT(${i})">
-                <img src="${img}" style="height:40px; border-radius:8px"><br><small>${owned?'SELECT':'🪙'+(i*800)}</small></div>`;
-        });
-    }
-
-    function buyB(i) {
-        if(unlockedB.includes(i)) { curB = i; hide(); }
-        else if(coins >= i*500) { coins -= i*500; unlockedB.push(i); save(); drawBGrid(); }
-    }
-
-    function buyT(i) {
-        if(unlockedT.includes(i)) { curT = i; hide(); }
-        else if(coins >= i*800) { coins -= i*800; unlockedT.push(i); save(); drawTGrid(); }
-    }
-
-    function add9k() { coins += 9000; save(); alert("9000 Coins Granted to Kingadom996@gmail.com!"); }
-    function redeem() { let c = document.getElementById('rcode').value; if(c.length > 4) { coins+=1000; save(); alert("Code Applied!"); } }
+    let bird = { x: 60, y: 300, w: 45, h: 35, v: 0, gravity: 0.6, jump: -10 };
+    let pipes = [];
+    let frame = 0;
 
     function startGame() {
-        playing = true; score = 0; pipes = []; birdObj.y = 300; birdObj.v = 0; frame = 0;
-        document.getElementById('menu').classList.add('hidden');
+        gameActive = true;
+        score = 0; pipes = []; bird.y = 300; bird.v = 0;
+        document.getElementById('menu').style.display = 'none';
+        document.querySelector('.bottom-nav').style.display = 'none';
     }
 
-    function loop() {
-        ctx.clearRect(0,0,420,700);
-        let b = new Image(); b.src = THEME_ASSETS[curT];
-        ctx.drawImage(b, 0, 0, 420, 700);
+    function stopGame() {
+        gameActive = false;
+        document.getElementById('menu').style.display = 'block';
+        document.querySelector('.bottom-nav').style.display = 'flex';
+        saveData();
+    }
 
-        if(playing) {
-            birdObj.v += birdObj.g;
-            birdObj.y += birdObj.v;
-            if(frame % 75 === 0) {
-                let gp = 160 - Math.min(score, 70);
-                pipes.push({ x: 420, t: Math.random()*300+100, g: gp });
+    function openShop(type) {
+        document.getElementById('shop-'+type).style.display = 'block';
+        if(type === 'birds') renderGrid('bird-grid', birdStyles, 'bird');
+        if(type === 'themes') renderGrid('theme-grid', themeStyles, 'theme');
+    }
+
+    function renderGrid(id, arr, type) {
+        const grid = document.getElementById(id);
+        grid.innerHTML = '';
+        arr.forEach((img, i) => {
+            const isSelected = (type === 'bird' ? birdIdx : themeIdx) === i;
+            grid.innerHTML += `
+                <div class="card ${isSelected?'active':''}" onclick="selectItem('${type}', ${i})">
+                    <img src="${img}">
+                    <div style="font-size:10px; font-weight:bold; margin-top:5px;">ITEM ${i+1}</div>
+                </div>`;
+        });
+    }
+
+    function selectItem(type, i) {
+        if(type === 'bird') birdIdx = i;
+        else themeIdx = i;
+        closeShop();
+    }
+
+    function closeShop() {
+        document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
+    }
+
+    function verifyRedeem() {
+        const val = document.getElementById('code-input').value;
+        if(val.toLowerCase() === 'astra90k' || val.length > 6) {
+            coins += 90000;
+            alert("90,000 COINS ADDED!\nLinked to: Kingadom996@gmail.com");
+            saveData();
+            closeShop();
+        } else {
+            alert("Invalid Redeem Code!");
+        }
+    }
+
+    function saveData() { 
+        document.getElementById('coins').innerText = coins;
+        document.getElementById('val-score').innerText = score;
+    }
+
+    function draw() {
+        // Theme Background
+        const bg = new Image(); bg.src = themeStyles[themeIdx];
+        ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+
+        if(gameActive) {
+            bird.v += bird.gravity;
+            bird.y += bird.v;
+
+            if(frame % 70 === 0) {
+                let h = Math.random() * (canvas.height - 350) + 100;
+                pipes.push({ x: canvas.width, t: h, g: 150 - Math.min(score, 50), passed: false });
             }
-            pipes.forEach((p, i) => {
-                p.x -= (5 + score*0.1);
-                ctx.fillStyle = "#222";
-                ctx.fillRect(p.x, 0, 60, p.t);
-                ctx.fillRect(p.x, p.t+p.g, 60, 700);
-                if(birdObj.x < p.x+60 && birdObj.x+40 > p.x && (birdObj.y < p.t || birdObj.y+30 > p.t+p.g)) {
-                    playing = false; document.getElementById('menu').classList.remove('hidden'); save();
-                }
-                if(p.x === 60) { score++; coins += 10; save(); }
-            });
-            pipes = pipes.filter(p => p.x > -100);
-            if(birdObj.y > 700 || birdObj.y < 0) { playing = false; document.getElementById('menu').classList.remove('hidden'); save(); }
+
+            for(let i=pipes.length-1; i>=0; i--) {
+                pipes[i].x -= (4.5 + score * 0.1);
+                
+                // Original Styled Pipes
+                ctx.fillStyle = "#73bf2e";
+                ctx.strokeStyle = "#333";
+                ctx.lineWidth = 4;
+                // Top
+                ctx.fillRect(pipes[i].x, 0, 60, pipes[i].t);
+                ctx.strokeRect(pipes[i].x, 0, 60, pipes[i].t);
+                // Bottom
+                ctx.fillRect(pipes[i].x, pipes[i].t + pipes[i].g, 60, canvas.height);
+                ctx.strokeRect(pipes[i].x, pipes[i].t + pipes[i].g, 60, canvas.height);
+
+                if(bird.x < pipes[i].x + 60 && bird.x + bird.w > pipes[i].x && (bird.y < pipes[i].t || bird.y + bird.h > pipes[i].t + pipes[i].g)) stopGame();
+                if(!pipes[i].passed && pipes[i].x < bird.x) { score++; coins += 20; pipes[i].passed = true; saveData(); }
+                if(pipes[i].x < -60) pipes.splice(i, 1);
+            }
+            if(bird.y > canvas.height || bird.y < 0) stopGame();
             frame++;
         }
 
-        let pI = new Image(); pI.src = BIRD_ASSETS[curB];
-        ctx.drawImage(pI, birdObj.x, birdObj.y, birdObj.w, birdObj.h);
-        
-        if(playing) { ctx.fillStyle="#fff"; ctx.font="900 60px Arial"; ctx.fillText(score, 180, 100); }
-        requestAnimationFrame(loop);
+        // Draw Bird (Ice/Fire styles handled by indices)
+        const bImg = new Image(); bImg.src = birdStyles[birdIdx];
+        ctx.save();
+        ctx.translate(bird.x + bird.w/2, bird.y + bird.h/2);
+        ctx.rotate(Math.min(Math.PI/4, Math.max(-Math.PI/4, bird.v * 0.1)));
+        ctx.drawImage(bImg, -bird.w/2, -bird.h/2, bird.w, bird.h);
+        ctx.restore();
+
+        requestAnimationFrame(draw);
     }
 
-    save();
-    loop();
+    window.addEventListener('keydown', (e) => { if(e.code === 'Space' && gameActive) bird.v = bird.jump; });
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); if(gameActive) bird.v = bird.jump; });
+
+    saveData();
+    draw();
 </script>
 </body>
 </html>
